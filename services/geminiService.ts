@@ -401,13 +401,18 @@ export const generateComicImages = async (
     const MODEL = 'gemini-2.5-flash-image-preview';
     const generatedPanels: ComicPanelData[] = [];
     const totalPanelsToGenerate = panelsToProcess.length;
-    const characterImageHistory = new Map<string, string>();
-
+    
+    const characterImageHistory = new Map<string, { mimeType: string; data: string }>();
     for (const char of customization.characters) {
         if (char.referenceImageUrl) {
-            const base64Data = char.referenceImageUrl.split(',')[1];
-            if (base64Data) {
-                characterImageHistory.set(char.id, base64Data);
+            const parts = char.referenceImageUrl.split(',');
+            if (parts.length === 2) {
+                const mimeMatch = parts[0].match(/:(.*?);/);
+                const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                const base64Data = parts[1];
+                if (base64Data) {
+                    characterImageHistory.set(char.id, { mimeType, data: base64Data });
+                }
             }
         }
     }
@@ -422,15 +427,15 @@ export const generateComicImages = async (
         for (const charName of uniqueCharactersInPanel) {
             const character = customization.characters.find(c => c.name === charName);
             if (character && characterImageHistory.has(character.id)) {
-                const base64Image = characterImageHistory.get(character.id)!;
-                if (!referenceImagesAdded.has(base64Image)) {
+                const imageData = characterImageHistory.get(character.id)!;
+                if (!referenceImagesAdded.has(imageData.data)) {
                     contentParts.push({
                         inlineData: {
-                            mimeType: 'image/jpeg',
-                            data: base64Image,
+                            mimeType: imageData.mimeType,
+                            data: imageData.data,
                         },
                     });
-                    referenceImagesAdded.add(base64Image);
+                    referenceImagesAdded.add(imageData.data);
                 }
                 charactersWithImagesInPrompt.push({ name: character.name, id: character.id });
             }
@@ -519,12 +524,17 @@ export const regeneratePanelImage = async (
 ): Promise<string> => {
     const ai = getAiClient(apiKey);
     const MODEL = 'gemini-2.5-flash-image-preview';
-    const characterImageHistory = new Map<string, string>();
+    const characterImageHistory = new Map<string, { mimeType: string; data: string }>();
     for (const char of customization.characters) {
         if (char.referenceImageUrl) {
-            const base64Data = char.referenceImageUrl.split(',')[1];
-            if (base64Data) {
-                characterImageHistory.set(char.id, base64Data);
+            const parts = char.referenceImageUrl.split(',');
+            if (parts.length === 2) {
+                const mimeMatch = parts[0].match(/:(.*?);/);
+                const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+                const base64Data = parts[1];
+                if (base64Data) {
+                    characterImageHistory.set(char.id, { mimeType, data: base64Data });
+                }
             }
         }
     }
@@ -537,12 +547,12 @@ export const regeneratePanelImage = async (
     for (const charName of uniqueCharactersInPanel) {
         const character = customization.characters.find(c => c.name === charName);
         if (character && characterImageHistory.has(character.id)) {
-            const base64Image = characterImageHistory.get(character.id)!;
-            if (!referenceImagesAdded.has(base64Image)) {
+            const imageData = characterImageHistory.get(character.id)!;
+            if (!referenceImagesAdded.has(imageData.data)) {
                 contentParts.push({
-                    inlineData: { mimeType: 'image/jpeg', data: base64Image },
+                    inlineData: { mimeType: imageData.mimeType, data: imageData.data },
                 });
-                referenceImagesAdded.add(base64Image);
+                referenceImagesAdded.add(imageData.data);
             }
             charactersWithImagesInPrompt.push({ name: character.name, id: character.id });
         }
