@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Modality, HarmCategory, HarmBlockThreshold } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { StoryboardPanel, CustomizationData, ComicPage, Character, ComicPanelData, TextRenderingMode } from '../types';
 
 // Helper function to initialize the AI client
@@ -60,13 +60,6 @@ export const calculatePages = (panels: ComicPanelData[]): ComicPage[] => {
     return pages;
 };
 
-
-const safetySettings = [
-    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-];
 
 const storyAnalysisSchema = {
     type: Type.OBJECT,
@@ -162,7 +155,6 @@ ${story}
         config: {
             responseMimeType: "application/json",
             responseSchema: storyAnalysisSchema,
-            safetySettings,
         },
     });
 
@@ -191,7 +183,6 @@ export const generateCharacterDescriptions = async (storyboard: StoryboardPanel[
         config: {
             responseMimeType: "application/json",
             responseSchema: characterDescriptionSchema,
-            safetySettings,
         },
     });
 
@@ -275,7 +266,6 @@ const detectSpeechBubbles = async (ai: GoogleGenAI, base64Image: string): Promis
             config: {
                 responseMimeType: "application/json",
                 responseSchema: speechBubbleSchema,
-                safetySettings,
             },
         });
 
