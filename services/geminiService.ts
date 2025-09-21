@@ -451,7 +451,6 @@ export const generateComicImages = async (
                     contents: { parts: contentParts },
                     config: {
                         responseModalities: [Modality.IMAGE, Modality.TEXT],
-                        safetySettings,
                     },
                 });
 
@@ -558,7 +557,6 @@ export const regeneratePanelImage = async (
         contents: { parts: contentParts },
         config: {
             responseModalities: [Modality.IMAGE, Modality.TEXT],
-            safetySettings,
         },
     });
 
